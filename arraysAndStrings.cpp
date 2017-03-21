@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <vector>
 
 using namespace std;
 
@@ -173,6 +174,137 @@ void urlifyTestAndOutput (string str, int trueLength) {
 }
 
 /*
+ * Problem 1.4 - Palindrome Permutation
+ * Given a string, check if it is a permutation of a palindrome.
+ *
+ * Solution
+ * --------
+ *
+ * If we analyze the anatomy of a palindrom, we can see it is 123...(x)...321 -> all chars
+ * must come in pair except for the middle one, which may or not be there.
+ *
+ * That means there can be max 1 (so 0 or 1) chars with an odd count -> if that is satisfied, the given
+ * string is a palindrome.
+ *
+ * Time complexity: O(N) -> we must check each character in string.
+ * Space complexity: O(1) -> we need a data structure to store character count (sth like int[alphabetSize]),
+ *                           but it doesn't depend on the size of the input, so it's O(1).
+ *
+ */
+bool isPalindromePermutation (string str) {
+    // TODO: is default value false?
+    //
+    // NOTE: We don't actually need the exact count of the each char,
+    // but just the binary information whether the count is odd or even.
+    // This is why we can use bool[] instead of int[].
+    bool isCharFreqOdd[asciiSize] = { false };
+
+    for (int i = 0; i < str.length(); i++) {
+        int asciiCode = getAsciiCode(str[i]);
+        isCharFreqOdd[asciiCode] = !isCharFreqOdd[asciiCode];
+    }
+
+    // Check the number of chars with the odd occurence frequency.
+    int oddCount = 0;
+    for (int i = 0; i < asciiSize; i++) {
+        if (isCharFreqOdd[i] == true) oddCount++;
+    }
+
+    return (oddCount <= 1);
+}
+
+/*
+ * Code that generates all permutations of a given palindrome.
+ */
+
+vector<int> getCharFrequency (string str) {
+    vector<int> charFrequency (asciiSize, 0);
+
+    // NOTE: Playing with C++11 here!
+    for (char& c : str) {
+        charFrequency[getAsciiCode(c)]++;
+    }
+    return charFrequency;
+}
+
+
+int countCharsAvailable(vector<int>& charFrequency) {
+    int charsAvailable = 0;
+
+    for (int& charCount : charFrequency) {
+        charsAvailable += charCount;
+    }
+    return charsAvailable;
+}
+
+
+vector<string> generateAllPPWorker (vector<int>& charFrequency) {
+    vector<string> permutations;
+
+    // Base cases - zero or one characters available.
+    int charsAvailable = countCharsAvailable(charFrequency);
+
+    if (charsAvailable == 0) {
+        permutations.push_back(""); // Not really semantically cool?
+        return permutations;
+    }
+    if (charsAvailable == 1) {
+        // Find that one character.
+        for (int i = 0; i < charFrequency.size(); i++) {
+            if (charFrequency[i] == 1) {
+                permutations.push_back(string(1, i));
+                return permutations;
+            }
+        }
+    }
+
+    // General case - try all available chars at most outer positions.
+    for (int i = 0; i < charFrequency.size(); i++) {
+        if (charFrequency[i] > 1) {
+            charFrequency[i] -= 2;
+
+            string outerChar = string(1, i);
+            for (string& innerPerm : generateAllPPWorker(charFrequency)) {
+                permutations.push_back(outerChar + innerPerm + outerChar);
+            }
+
+            charFrequency[i] += 2;
+        }
+    }
+    return permutations;
+}
+
+vector<string> generateAllPalindromePermutations (string str) {
+    vector<string> palindromePermutations;
+
+    if (!isPalindromePermutation(str)) return palindromePermutations; // Empty vector
+
+    // Count char occurence frequency.
+    vector<int> charFrequency = getCharFrequency(str);
+
+    // Recursively generate all palindroms.
+    return generateAllPPWorker(charFrequency);
+}
+
+/*
+ * End of code that generates all permutations of a given palindrome.
+ */
+
+void isPalindromePermutationTestAndOutput (string str) {
+    cout    << "'" + str + "'" << " is" << (isPalindromePermutation(str) ? "" : " NOT")
+            << " a palindrome permutation" << endl;
+
+    if (isPalindromePermutation(str)) {
+        cout << "Palindrome permutations are:" << endl;
+
+        for (string& permutation : generateAllPalindromePermutations(str)) {
+            cout << "'" + permutation + "'" << endl;
+        }
+        cout << endl;
+    }
+}
+
+/*
  * Problem 1.6 - String Compression
  *
  * Compress sequences of repeated characters. E.g., aaabbc -> a3b2c1
@@ -257,6 +389,12 @@ int main() {
 
     // Testing problem 3 - URLify
     urlifyTestAndOutput(" matija    martin          ", 17);
+
+    cout << endl;
+
+    // Testing problem 4 - Is Palindrome Permutation
+    isPalindromePermutationTestAndOutput("tacocat");
+    isPalindromePermutationTestAndOutput("matija");
 
     cout << endl;
 
