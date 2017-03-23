@@ -227,7 +227,6 @@ vector<int> getCharFrequency (string str) {
     return charFrequency;
 }
 
-
 int countCharsAvailable(vector<int>& charFrequency) {
     int charsAvailable = 0;
 
@@ -236,7 +235,6 @@ int countCharsAvailable(vector<int>& charFrequency) {
     }
     return charsAvailable;
 }
-
 
 vector<string> generateAllPPWorker (vector<int>& charFrequency) {
     vector<string> permutations;
@@ -305,6 +303,78 @@ void isPalindromePermutationTestAndOutput (string str) {
 }
 
 /*
+ * Problem 1.5 - One Away
+ * Given two strings, check if they are one or zero edits away.
+ * Available edit operations are: insert, remove or replace a character.
+ *
+ * Solution
+ * --------
+ *
+ * First obvious fact is that if the length difference between strings is
+ * greater than 1, they cannot be one away.
+ * Now we have two cases:
+ * 1)   the length is the same - only thing we have to do now is go in parallel through
+ *      the strings and count the differences - there may not be more than 1. 
+ *
+ * 2)   the length difference is 1 - check if the longer string contains all chars from
+ *      the shorter one in the right order.
+ *
+ * Time complexity: O(N) - just go through the both strings.
+ * Space complexity: O(1) - no additional data structures needed.
+ *
+ * What can be learned: Not much, maybe the trickiest part is to come up with the algorithm
+ * for "length diff 1" case. It is also needed to understand that insert/remove operations are
+ * inverses and do not have to be viewed separately. 
+ * But this is all very specific, there isn't some general learning here.
+ */
+
+bool areOneReplacementAway (string str1, string str2) {
+    // NOTE: It is assumed str1.length() == str2.length()
+    int diffCount = 0;
+    for (int i = 0; i < str1.length(); i++) {
+        if (str1[i] !=  str2[i]) {
+            diffCount++;
+            if (diffCount > 1) return false;
+        }
+    } 
+    return true;
+}
+
+bool areOneInsertAway (string shortStr, string longStr) {
+    // NOTE: It is assumed that shortStr.length() + 1 = longStr.length()
+
+    int longStrIdx = 0;
+    for (char& shortStrChar : shortStr) {
+        // Try to find shortStrChar in the long string, respecting the order.
+        bool foundInLong = false;
+        for (; longStrIdx < longStr.length() && foundInLong == false; longStrIdx++) {
+            if (shortStrChar == longStr[longStrIdx]) foundInLong = true;
+        }
+        if (!foundInLong) return false;
+    }
+    return true;
+}
+
+bool areOneAway (string str1, string str2) {
+    if (str1.length() == str2.length()) {
+        return areOneReplacementAway(str1, str2);
+    }
+    if (str1.length() - str2.length() == 1) {
+        return areOneInsertAway(str2, str1);
+    }
+    if (str2.length() - str1.length() == 1) {
+        return areOneInsertAway(str1, str2);
+    }
+
+    return false;
+}
+
+void areOneAwayTestAndOutput (string str1, string str2) {
+    cout    << str1 << ", " << str2 << " -> " 
+            << (areOneAway(str1, str2) ? "true" : "false") << endl;
+}
+
+/*
  * Problem 1.6 - String Compression
  *
  * Compress sequences of repeated characters. E.g., aaabbc -> a3b2c1
@@ -319,6 +389,9 @@ void isPalindromePermutationTestAndOutput (string str) {
  *
  * Time complexity: O(N) -> we just go through the string and do stuff.
  * Space complexity: O(N) -> we create a new string where the solution is stored.
+ *
+ * What can be learned from this problem: The main trick was to understand what is palindrom and
+ * observe it's properties. Implementation is then pretty straightforward.
  */
 
 string intToString (int a) {
@@ -395,6 +468,15 @@ int main() {
     // Testing problem 4 - Is Palindrome Permutation
     isPalindromePermutationTestAndOutput("tacocat");
     isPalindromePermutationTestAndOutput("matija");
+
+    cout << endl;
+
+    // Testing problem 5 - One Away
+    areOneAwayTestAndOutput("pale", "ple");
+    areOneAwayTestAndOutput("pales", "pale");
+    areOneAwayTestAndOutput("pale", "bale");
+    areOneAwayTestAndOutput("pale", "bake");
+    areOneAwayTestAndOutput("matija", "martin");
 
     cout << endl;
 
