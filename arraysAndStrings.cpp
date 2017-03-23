@@ -446,6 +446,111 @@ void compressRepeatedCharsTestAndOutput (string str) {
     cout << str << " -> " << compressRepeatedChars(str) << endl;
 }
 
+/*
+ * Problem 1.7 - Rotate Matrix
+ * Given NxN matrix, write a method to rotate the image by 90 degrees. Can you do it in place?
+ *
+ * Solution
+ * --------
+ * 
+ * Yes, it can be done in place since we have enough information to calculate the "new" position
+ * of every element in the matrix.
+ *
+ * Now, if we want to put a specific element to its new position, we also have to move the element that
+ * was originally there, in order to make place for the first one. That goes "in circle" for the 4 sides of a
+ * matrix - in order to move one element, we will have to move 4 elements. We do that all corresponding quadruples
+ * of elements and that's it!
+ *
+ * One way to do it is to start from the most outer "frame" of the matrix and then move towards the center.
+ * This way things are nicely separated and we could even do it recursively - rotate(NxN) = rotate the most outer frame
+ * and then rotate(N-1 x N-1).
+ */
+
+void exchangeCircular (int& a, int& b, int& c, int& d) {
+    int tmp1;
+    int tmp2;
+
+    // b <- a
+    tmp1 = b;
+    b = a;
+
+    // c <- b
+    tmp2 = c;
+    c = tmp1;
+
+    // d <- c
+    tmp1 = d;
+    d = tmp2;
+
+    // a <-d
+    a = tmp1;
+
+    return;
+}
+
+void rotateMatrix (vector<vector<int>>& matrix) {
+
+    int numOfLayers = (matrix.size() + 1) / 2;
+    for (int layer = 0; layer < numOfLayers; layer++) {
+
+        int layerSize = matrix.size() - 2 * layer;
+        int maxIdx = matrix.size() - 1;
+        for (int i = 0; i < layerSize - 1; i++) {
+            exchangeCircular(matrix[layer][layer + i],                      // Up
+                             matrix[layer + i][maxIdx - layer],             // Right
+                             matrix[maxIdx - layer][maxIdx - layer - i],    // Down
+                             matrix[maxIdx - layer - i][layer]              // Left
+                            );
+        }
+    }
+    return;
+}
+
+void printMatrix (vector<vector<int>> matrix) {
+    for (int x = 0; x < matrix.size(); x++) {
+        for (int y = 0; y < matrix.size(); y++) {
+            cout << matrix[x][y] << " ";
+        }
+        cout << endl;
+    }
+}
+
+/*
+ * Prints original and rotated matrix side by side.
+ */
+void printOriginalAndRotatedMatrix (vector<vector<int>>& original, vector<vector<int>>& rotated) {
+
+    for (int x = 0; x < original.size(); x++) {
+        // Print x-th row of the original matrix.
+        for (int y = 0; y < original.size(); y++) {
+            cout << original[x][y] << " ";
+        }
+
+        // Add some space between matrices.
+        if (x == original.size() / 2) {
+            cout << "  ->  ";
+        } else {
+            cout << "      ";
+        }
+
+        // Print x-th row of the rotated matrix.
+        for (int y = 0; y < original.size(); y++) {
+            cout << rotated[x][y] << " ";
+        }
+        cout << endl;
+    }
+}
+
+void rotateMatrixTestAndOutput (vector<vector<int>>& matrix) {
+
+    // Preserve original matrix.
+    vector<vector<int>> originalMatrix = matrix;
+
+    rotateMatrix(matrix);
+
+    printOriginalAndRotatedMatrix(originalMatrix, matrix);
+}
+
 int main() {
 
     // Testing problem 1 - isUnique
@@ -483,6 +588,17 @@ int main() {
     // Testing problem 6 - String Compression
     compressRepeatedCharsTestAndOutput("aaaabbbbccccd");
     compressRepeatedCharsTestAndOutput("a");
+
+    cout << endl;
+
+    // Testing problem 7 - Rotate Matrix 
+    vector<vector<int>> matrix = 
+    {
+        {1, 2, 3},
+        {4, 5, 6},
+        {7, 8, 9}
+    };
+    rotateMatrixTestAndOutput(matrix);
 
     return 0;
 }
