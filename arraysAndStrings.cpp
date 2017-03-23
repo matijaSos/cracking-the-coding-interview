@@ -464,26 +464,18 @@ void compressRepeatedCharsTestAndOutput (string str) {
  * One way to do it is to start from the most outer "frame" of the matrix and then move towards the center.
  * This way things are nicely separated and we could even do it recursively - rotate(NxN) = rotate the most outer frame
  * and then rotate(N-1 x N-1).
+ *
+ * Time complexity: O(n^2) - we are touching all the elements of the matrix.
+ * Space complexity: O(1) - no additional data structures, doing everything in place.
  */
 
 void exchangeCircular (int& a, int& b, int& c, int& d) {
-    int tmp1;
-    int tmp2;
+    int tmp = b;
 
-    // b <- a
-    tmp1 = b;
     b = a;
-
-    // c <- b
-    tmp2 = c;
-    c = tmp1;
-
-    // d <- c
-    tmp1 = d;
-    d = tmp2;
-
-    // a <-d
-    a = tmp1;
+    a = d;
+    d = c;
+    c = tmp;
 
     return;
 }
