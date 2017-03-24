@@ -467,6 +467,10 @@ void compressRepeatedCharsTestAndOutput (string str) {
  *
  * Time complexity: O(n^2) - we are touching all the elements of the matrix.
  * Space complexity: O(1) - no additional data structures, doing everything in place.
+ *
+ * What can be learned here: It is an interesting problem to decompose, but not sure if it
+ * adds up to any general value. Implementation wise, it requires a bit of precision with the
+ * matrix indices, that always takes me a moment to be sure I got it right.
  */
 
 void exchangeCircular (int& a, int& b, int& c, int& d) {
@@ -500,7 +504,7 @@ void rotateMatrix (vector<vector<int>>& matrix) {
 
 void printMatrix (vector<vector<int>> matrix) {
     for (int x = 0; x < matrix.size(); x++) {
-        for (int y = 0; y < matrix.size(); y++) {
+        for (int y = 0; y < matrix[0].size(); y++) {
             cout << matrix[x][y] << " ";
         }
         cout << endl;
@@ -508,13 +512,15 @@ void printMatrix (vector<vector<int>> matrix) {
 }
 
 /*
- * Prints original and rotated matrix side by side.
+ * Prints original and transformed matrix side by side.
+ *
+ * Assumption: Transformed matrix has the same dimensions as the original one.
  */
-void printOriginalAndRotatedMatrix (vector<vector<int>>& original, vector<vector<int>>& rotated) {
+void printOriginalAndTransformedMatrix (vector<vector<int>>& original, vector<vector<int>>& transformed) {
 
     for (int x = 0; x < original.size(); x++) {
         // Print x-th row of the original matrix.
-        for (int y = 0; y < original.size(); y++) {
+        for (int y = 0; y < original[0].size(); y++) {
             cout << original[x][y] << " ";
         }
 
@@ -526,8 +532,8 @@ void printOriginalAndRotatedMatrix (vector<vector<int>>& original, vector<vector
         }
 
         // Print x-th row of the rotated matrix.
-        for (int y = 0; y < original.size(); y++) {
-            cout << rotated[x][y] << " ";
+        for (int y = 0; y < original[0].size(); y++) {
+            cout << transformed[x][y] << " ";
         }
         cout << endl;
     }
@@ -540,7 +546,92 @@ void rotateMatrixTestAndOutput (vector<vector<int>>& matrix) {
 
     rotateMatrix(matrix);
 
-    printOriginalAndRotatedMatrix(originalMatrix, matrix);
+    printOriginalAndTransformedMatrix(originalMatrix, matrix);
+}
+
+/*
+ * Problem 1.8 - Zero Matrix
+ * Given a MxN matrix, go through it and if an element is 0, set its entire row
+ * and column to 0.
+ *
+ * Solution
+ * --------
+ *  
+ * The solution here is straightforward - first make a pass through the matrix and
+ * find out which rows and columns need to be set to zero, and then do it.
+ *
+ * We can't do it in just one pass, greedy - when you encounter 0, set row/col to 0,
+ * because that would erase information (locations of the other zeros) from yet
+ * unexplored cells of the matrix.
+ *
+ * Time complexity: O(N^2) (actually, O(N*M)) - we have to touch each cell.
+ * Space complexity: O(N+M) - one array for rows and one for columns that should be
+ * set to zero.
+ *
+ * As an additional memory optimization, author proposed an idea to use a specific
+ * (typically first) row and column instead of auxilliary arrays. To do that, we also
+ * have to use additional variables to preserve the data from this row and column.
+ *
+ * This works, but makes the logic more complicated. If we could afford to store the
+ * whole matrix in the memory, we can probably afford to store one more row and column
+ * as well.
+ *
+ * What can be learned: 
+ * - don't go greedy without thinking in front - analyze the problem and observe the
+ *   dependencies between the steps
+ *
+ * - to save on the memory, try reusing existing data structures instead of creating
+ *   the new ones. In that case, we need to also develop an additional logic that 
+ *   makes that posssible and makes sure no info gets lost.
+ */
+void nullifyMatrix (vector<vector<int>>& matrix) {
+    int rowCount = matrix.size();
+    int columnCount = matrix[0].size();
+
+    vector<bool> isRowZero (rowCount, false);
+    vector<bool> isColumnZero (columnCount, false);
+
+    // Go through the matrix and find zeros -> marks rows
+    // and columns to be nullified.
+    for (int x = 0; x < rowCount; x++) {
+        for (int y = 0; y < columnCount; y++) {
+            if (matrix[x][y] == 0) {
+                isRowZero[x] = true;
+                isColumnZero[y] = true;
+            }
+        }
+    }
+
+    // Nullify rows.
+    for (int x = 0; x < rowCount; x++) {
+        if (isRowZero[x]) {
+            for (int y = 0; y < columnCount; y++) {
+                matrix[x][y] = 0;
+            }
+        }
+    }
+
+    // Nullify columns.
+    for (int y = 0; y < columnCount; y++) {
+        if (isColumnZero[y]) {
+            for (int x = 0; x < rowCount; x++) {
+                matrix[x][y] = 0;
+            }
+        }
+    }
+    return;
+}
+
+void nullifyMatrixTestAndOutput (vector<vector<int>>& matrix) {
+
+    // Preserve original so we can compare it to the nullified matrix.
+    vector<vector<int>> original = matrix;
+
+    nullifyMatrix(matrix);
+
+    printOriginalAndTransformedMatrix(original, matrix);
+
+    return;
 }
 
 int main() {
@@ -591,6 +682,19 @@ int main() {
         {7, 8, 9}
     };
     rotateMatrixTestAndOutput(matrix);
+
+    cout << endl;
+
+    // Testing problem 8 - Zero Matrix
+    vector<vector<int>> zeroMatrix = {
+        {1, 2, 3, 4},
+        {1, 1, 1, 1},
+        {1, 0, 1, 1},
+        {1, 1, 1, 1},
+        {1, 1, 1, 0}
+    };
+
+    nullifyMatrixTestAndOutput(zeroMatrix);
 
     return 0;
 }
