@@ -634,6 +634,51 @@ void nullifyMatrixTestAndOutput (vector<vector<int>>& matrix) {
     return;
 }
 
+/*
+ * Problem 1.9 - String Rotation
+ * Given two strings s1 and s2, check whether s2 is a rotation of s1
+ * using only call to isSubstring() method.
+ * E.g: s1 = "waterbottle"
+ *      s2 = "erbottlewat"
+ *
+ * Solution
+ * --------
+ *
+ * If we analyze the anatomy of the rotated word, we can see it's "cut"
+ * at the specific position and then the parts are switched - second part
+ * is put before the first one.
+ *
+ * If we then try to match the rotated word to the original, we'll see that
+ * the rotated word "extends" beyond the last character of the original one.
+ *
+ * The idea here is to duplicate the original (that way s2 will never protrude beyond s1), 
+ * s1, and check whether s2 is its substring. So it's s2.isSubstring(s1+s1);
+ *
+ * Also, we have to make sure that the strings are of the same length.
+ *
+ * Time complexity: O(N) - we check matching via isSubstring()
+ * Space complexity: O(N) - we make a duplicate of s1
+ *
+ * What can be learned here: Not really sure what is the point here, I suppose
+ * generic problem solving ability. This is more like a neat trick, implementation is
+ * super simple once we get this part.
+ *
+ * Note
+ * ----
+ * I also loved the simplicity of the author's explanation:
+ * Original string is xy (x and y are parts before and after the rotation point), 
+ * while the rotated is then yx - yx will always be substring of xyxy.
+ */
+
+bool isRotation (string s1, string s2) {
+    if (s1.length() != s2.length()) return false;
+    return ((s1 + s1).find(s2) != string::npos);
+}
+
+void isRotationTestAndOutput (string s1, string s2) {
+    cout << s1 + ", " + s2 << " -> " << (isRotation(s1, s2) ? " true" : " false") << endl;
+}
+
 int main() {
 
     // Testing problem 1 - isUnique
@@ -693,8 +738,14 @@ int main() {
         {1, 1, 1, 1},
         {1, 1, 1, 0}
     };
-
     nullifyMatrixTestAndOutput(zeroMatrix);
+
+    cout << endl;
+
+    // Testing problem 9 - String Rotation
+    isRotationTestAndOutput("waterbottle", "erbottlewat");
+    isRotationTestAndOutput("waterbottle", "xmbottlewat");
+    isRotationTestAndOutput("waterbottle", "water");
 
     return 0;
 }
